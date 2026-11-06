@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ESP32 3-Phase Energy Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--card:#142137;--line:#293c58;--muted:#9eb0c9;--cyan:#53d5e5;--green:#52d69a}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#10213a,#080e19);color:#eef5ff;font:15px Arial,sans-serif}.wrap{max-width:1150px;margin:auto;padding:22px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}h1{margin:0 0 7px;font-size:clamp(23px,4vw,32px)}.muted,.label{color:var(--muted)}.status{margin-top:10px;font-size:13px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffc857;margin-right:7px}.dot.ok{background:var(--green)}.dot.bad{background:#ff6575}
+button,select{background:#203653;color:white;border:1px solid var(--line);padding:10px 13px;border-radius:9px}button{cursor:pointer}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.card{background:linear-gradient(145deg,#172740,#101b2d);border:1px solid var(--line);border-radius:15px;padding:16px;min-width:0}.label{font-size:11px;text-transform:uppercase;letter-spacing:1px}.big{font-size:27px;font-weight:bold;margin-top:9px}.unit{font-size:12px;color:var(--muted);font-weight:normal}.section{margin:23px 0 12px;font-size:18px}.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.phasehead{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:14px}.tag{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:5px 8px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#1b2c44;padding:11px;border-radius:10px}.metric .big{font-size:20px}.bar{height:5px;background:#30425b;border-radius:8px;margin-top:9px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0}.lower{display:grid;grid-template-columns:1fr 1fr;gap:13px}table{width:100%;border-collapse:collapse;font-size:13px}td{padding:10px 2px;border-bottom:1px solid var(--line)}td:first-child{color:var(--muted)}td:last-child{text-align:right;font-weight:bold}.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:15px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.phases{grid-template-columns:1fr}.lower{grid-template-columns:1fr}}@media(max-width:430px){.wrap{padding:13px}.card{padding:12px}.big{font-size:23px}}
+</style></head><body><main class="wrap">
+<header><div><h1>3-Phase Energy Meter</h1><div class="muted">Firebase live dashboard · Device ID <b id="deviceLabel">01</b></div><div class="status"><span class="dot" id="dot"></span><span id="status">Connecting…</span><span id="updated"></span></div></div>
+<div><label class="muted">Device </label> <select id="device"><option>01</option></select> <button id="refresh">Refresh</button></div></header>
+<section class="grid">
+<div class="card"><div class="label">Total energy</div><div class="big" id="totalEnergy">-- <span class="unit">kWh</span></div></div>
+<div class="card"><div class="label">Total power</div><div class="big" id="totalPower">-- <span class="unit">W</span></div></div>
+<div class="card"><div class="label">Energy cost</div><div class="big" id="cost">--</div><div class="muted" id="tariff">Tariff: --</div></div>
+<div class="card"><div class="label">Total current</div><div class="big" id="totalCurrent">-- <span class="unit">A</span></div></div>
+</section>
+<div class="section">Phase readings</div><section class="phases">
+<div class="card"><div class="phasehead">R Phase <span class="tag">PHASE 1</span></div><div class="metrics">
+<div class="metric"><div class="label">Voltage</div><div class="big" id="v0">-- V</div><div class="bar"><span id="vb0"></span></div></div><div class="metric"><div class="label">Current</div><div class="big" id="i0">-- A</div><div class="bar"><span id="ib0"></span></div></div>
+<div class="metric"><div class="label">Power</div><div class="big" id="p0">-- W</div></div><div class="metric"><div class="label">Energy</div><div class="big" id="e0">-- kWh</div></div><div class="metric"><div class="label">Frequency</div><div class="big" id="f0">-- Hz</div></div><div class="metric"><div class="label">Power factor</div><div class="big" id="pf0">--</div></div></div></div>
+<div class="card"><div class="phasehead">Y Phase <span class="tag">PHASE 2</span></div><div class="metrics">
+<div class="metric"><div class="label">Voltage</div><div class="big" id="v1">-- V</div><div class="bar"><span id="vb1"></span></div></div><div class="metric"><div class="label">Current</div><div class="big" id="i1">-- A</div><div class="bar"><span id="ib1"></span></div></div>
+<div class="metric"><div class="label">Power</div><div class="big" id="p1">-- W</div></div><div class="metric"><div class="label">Energy</div><div class="big" id="e1">-- kWh</div></div><div class="metric"><div class="label">Frequency</div><div class="big" id="f1">-- Hz</div></div><div class="metric"><div class="label">Power factor</div><div class="big" id="pf1">--</div></div></div></div>
+<div class="card"><div class="phasehead">B Phase <span class="tag">PHASE 3</span></div><div class="metrics">
+<div class="metric"><div class="label">Voltage</div><div class="big" id="v2">-- V</div><div class="bar"><span id="vb2"></span></div></div><div class="metric"><div class="label">Current</div><div class="big" id="i2">-- A</div><div class="bar"><span id="ib2"></span></div></div>
+<div class="metric"><div class="label">Power</div><div class="big" id="p2">-- W</div></div><div class="metric"><div class="label">Energy</div><div class="big" id="e2">-- kWh</div></div><div class="metric"><div class="label">Frequency</div><div class="big" id="f2">-- Hz</div></div><div class="metric"><div class="label">Power factor</div><div class="big" id="pf2">--</div></div></div></div>
+</section>
+<div class="section">Totals & protection settings</div><section class="lower"><div class="card"><div class="label">Combined readings</div><table>
+<tr><td>Total voltage</td><td id="tv">-- V</td></tr><tr><td>Frequency</td><td id="tf">-- Hz</td></tr><tr><td>Power factor</td><td id="tpf">--</td></tr><tr><td>Reactive power</td><td id="tq">-- var</td></tr><tr><td>Apparent power</td><td id="ts">-- VA</td></tr><tr><td>Current unbalance</td><td id="tiu">--</td></tr><tr><td>Voltage unbalance</td><td id="tvu">--</td></tr></table></div>
+<div class="card"><div class="label">Meter settings</div><table><tr><td>Low voltage limit</td><td id="vlow">-- V</td></tr><tr><td>High voltage limit</td><td id="vhigh">-- V</td></tr><tr><td>High current limit</td><td id="ihigh">-- A</td></tr><tr><td>Energy limit</td><td id="limit">-- kWh</td></tr><tr><td>Tariff</td><td id="tariff2">--</td></tr><tr><td>Alarms</td><td id="alarms">--</td></tr><tr><td>Uptime</td><td id="uptime">--</td></tr></table></div></section>
+<div class="note" id="message">Reading from Firebase Realtime Database every 5 seconds.</div>
+</main>
+<script>
+const DB="https://phase-energy-meter-f6ce3-default-rtdb.firebaseio.com";
+const $=id=>document.getElementById(id), n=(x,d=2)=>Number.isFinite(Number(x))?Number(x).toFixed(d):"--";
+function val(id,x,u,d=2){$(id).innerHTML=n(x,d)+' <span class="unit">'+u+'</span>'}
+function bar(id,x,max){$(id).style.width=Math.max(0,Math.min(100,(Number(x)||0)/max*100))+"%"}
+async function refresh(){
+ const id=$("device").value.trim()||"01";$("deviceLabel").textContent=id;$("status").textContent="Loading Firebase…";
+ try{
+  const r=await fetch(`${DB}/meters/${encodeURIComponent(id)}/live.json?cache=${Date.now()}`,{cache:"no-store"});
+  if(!r.ok)throw Error("HTTP "+r.status+" "+r.statusText);
+  const d=await r.json();if(!d)throw Error("No live data found for device "+id);
+  const p=Array.isArray(d.ph)?d.ph:[],t=d.tot||{};
+  for(let k=0;k<3;k++){const x=p[k]||{};val("v"+k,x.v,"V",1);val("i"+k,x.i,"A",2);val("p"+k,x.p,"W",1);val("e"+k,x.e,"kWh",4);val("f"+k,x.f,"Hz",2);$("pf"+k).textContent=n(x.pf,3);bar("vb"+k,x.v,265);bar("ib"+k,x.i,30)}
+  val("totalEnergy",t.e,"kWh",4);val("totalPower",t.p,"W",1);val("totalCurrent",t.i,"A",2);
+  $("cost").textContent=(d.currency||"Rs")+" "+n(d.cost,2);$("tariff").textContent="Tariff: "+n(d.tariff)+" "+(d.currency||"Rs")+"/kWh";
+  $("tv").textContent=n(t.v,1)+" V";$("tf").textContent=n(t.f)+" Hz";$("tpf").textContent=n(t.pf,3);$("tq").textContent=n(t.q,1)+" var";$("ts").textContent=n(t.s,1)+" VA";$("tiu").textContent=n(t.unbI);$("tvu").textContent=n(t.unbV);
+  $("vlow").textContent=n(d.vlow,0)+" V";$("vhigh").textContent=n(d.vhigh,0)+" V";$("ihigh").textContent=n(d.ihigh,1)+" A";$("limit").textContent=n(d.limit)+" kWh";$("tariff2").textContent=n(d.tariff)+" "+(d.currency||"Rs")+"/kWh";$("alarms").textContent=d.alarms??"--";$("uptime").textContent=n(d.uptime,0)+" sec";
+  $("dot").className="dot ok";$("status").textContent="Connected · live data received";$("updated").textContent=" · "+new Date().toLocaleTimeString();$("message").textContent="Data received successfully. Auto refresh: 5 seconds.";
+ }catch(e){$("dot").className="dot bad";$("status").textContent="Read error";$("message").textContent="Firebase read failed: "+e.message+". Check database read rules and device ID."}
+}
+$("refresh").onclick=refresh;$("device").onchange=refresh;refresh();setInterval(refresh,5000);
+</script></body></html>
